@@ -59,8 +59,13 @@ bot.on('message', async (payload, reply) => {
           code: payload.message.text,
         },
       });
-      const matchButtonPayload = getMatchButtonPayload({ code });
 
+      if (code.userId === senderId) {
+        const replayText = '你輸入了自己的配對碼，無法配對啦 :(';
+        return reply(senderId, { text: replayText });
+      }
+
+      const matchButtonPayload = getMatchButtonPayload({ code });
       return bot.sendMessage(replyId, matchButtonPayload, error => {
         if (error) throw error;
         console.log(`Echoed back to ${profile.first_name} ${profile.last_name}
@@ -213,9 +218,9 @@ bot.on('postback', async (payload, reply) => {
         messengerId: partnerId,
       },
     });
-    let text = `你已經和 ${partner.name} 結束斷開連結：（`;
+    let text = `你已經和 ${partner.name} 結束斷開連結 :(`;
     reply(senderId, { text });
-    text = `你已經和 ${sender.name} 結束斷開連結：（`;
+    text = `你已經和 ${sender.name} 結束斷開連結 :(`;
     return reply(partnerId, { text });
   } else if (payloadText.startsWith('connected_with_code')) {
     const connecteduUser = await Code.findOne({

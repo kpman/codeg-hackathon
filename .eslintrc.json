@@ -10,7 +10,6 @@
   },
   "rules": {
     "arrow-parens": "off",
-    "babel/arrow-parens": ["error", "as-needed"],
     "no-console": "off"
   },
   "plugins": [
