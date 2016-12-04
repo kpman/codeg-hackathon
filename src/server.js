@@ -12,6 +12,7 @@ import {
   getMatchButtonPayload,
   getNotMatchButtonPayload,
   getFeedbackButtonPayload,
+  getDisconnectButtonPayload,
   getLinkPayload,
 } from './utils/';
 
@@ -126,6 +127,16 @@ bot.on('postback', async (payload, reply) => {
   });
 
   if (payloadText === '取得配對碼') {
+    // check sender is connected or not
+    const partnerId = await getPartnerId(senderId);
+    if (partnerId) {
+      const text = '你已經有配對者了，無法再取得配對碼囉。';
+      return reply(senderId, { text }, err => {
+        if (err) throw err;
+        console.log(`Echoed postback to ${senderId}: ${text}`);
+      });
+    }
+
     const random = new Random();
     const randomNum = random.integer(100000, 999999);
 
@@ -160,11 +171,52 @@ bot.on('postback', async (payload, reply) => {
       if (err) throw err;
       console.log(`Echoed postback to ${senderId}: ${text}`);
     });
+  } else if (payloadText === 'disconnect_partner') {
+    const partnerId = await getPartnerId(senderId);
+    if (!partnerId) {
+      const text = '你還沒有配對過喔！';
+      return reply(senderId, { text }, err => {
+        if (err) throw err;
+        console.log(`Echoed postback to ${senderId}: ${text}`);
+      });
+    }
+    const partner = await User.findOne({
+      where: {
+        messengerId: partnerId,
+      },
+    });
+    return reply(senderId, getDisconnectButtonPayload(partner), err => {
+      if (err) throw err;
+      console.log(`Echoed postback to ${senderId}: 取消配對選項`);
+    });
   } else if (payloadText === '使用說明') {
     return reply(senderId, getHelpButtonPayload(), err => {
       if (err) throw err;
       console.log(`Echoed postback to ${senderId}: 使用說明`);
     });
+  } else if (payloadText.startsWith('confirm_disconnect')) {
+    const partnerId = payloadText.replace('confirm_disconnect_', '');
+    await Relation.destroy({
+      where: {
+        $or: [
+          {
+            user1: partnerId,
+          },
+          {
+            user2: partnerId,
+          },
+        ],
+      },
+    });
+    const partner = await User.findOne({
+      where: {
+        messengerId: partnerId,
+      },
+    });
+    let text = `你已經和 ${partner.name} 結束斷開連結：（`;
+    reply(senderId, { text });
+    text = `你已經和 ${sender.name} 結束斷開連結：（`;
+    return reply(partnerId, { text });
   } else if (payloadText.startsWith('connected_with_code')) {
     const connecteduUser = await Code.findOne({
       where: {

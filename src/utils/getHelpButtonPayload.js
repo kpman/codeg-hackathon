@@ -5,6 +5,10 @@ const actions = [
     displayText: '取得配對碼',
     payload: '取得配對碼',
   },
+  {
+    displayText: '結束配對關係',
+    payload: 'disconnect_partner',
+  },
 ];
 const messageText = '【使用說明】\n1. 取得配對碼\n2. 請對方輸入進行配對確認\n3. 開始兩人專屬聊天室！';
 
