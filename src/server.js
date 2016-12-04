@@ -30,6 +30,10 @@ bot.on('message', async (payload, reply) => {
   const senderId = payload.sender.id;
   let replyId = senderId;
 
+  if (!text) {
+    return reply(replyId, { text: '麻煩輸入純文字喲！' });
+  }
+
   bot.getProfile(senderId, async (err, profile) => {
     if (err) throw err;
 
